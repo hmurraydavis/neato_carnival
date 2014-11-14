@@ -34,9 +34,10 @@ We’ll need some budget for the mechanical construction of some obstacles.  Add
 
 ##Specific Obstacle Ideas:
 
-- Bridge
-- Tunnel
-- Knocking over colored cups/dominoes
+If **bold**, we're currently working on it.
+- **Bridge**
+- **Tunnel**
+- **Knocking over colored dominoes**
 - Weaving through cones
 - Teeter totter
 - Jousting or target practice (have a pole on top, knock something into a target, or push a box into place)
@@ -45,6 +46,7 @@ We’ll need some budget for the mechanical construction of some obstacles.  Add
 - Slide down a slide on a towel
 
 
-
+##Schedule
+[Gnatt Chart of Schedule](https://raw.githubusercontent.com/hmurraydavis/neato_carnival/master/photos/scheduleImage.png)
 
 
