@@ -1,9 +1,33 @@
 #may want to use a SIFT descriptor
 
+import numpy as np
+import cv2
+
+
 class bridge():
     '''Behaviors to let the robot traverse the bridge and execute the behavior.'''
     
+    
+    def closeImages(self):
+        """
+        Close images opened by Open CV, addresses the different method of closing
+        images based on command line or called usage.
+        INPUT: none
+        OUTPUT: none
+        **Closes all open cv2 images either on a keystroke (comman line use) or 
+            immediately (called from another python script)
+        """
+        if __name__ == '__main__':
+            cv2.waitKey(0)
+            cv2.destroyAllWindows()
+        else:
+            cv2.waitKey(3)
+        
     def __init__(self):
+        image = cv2.imread('gimpBridge.jpg', cv2.IMREAD_COLOR)
+        print image
+        cv2.imshow('gimp bridge', image)
+        self.closeImages()
         return
         
     
@@ -64,3 +88,6 @@ class bridge():
         
     def do(self):
         return
+        
+if __name__ == '__main__':
+    bridge()
