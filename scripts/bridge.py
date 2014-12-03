@@ -22,10 +22,24 @@ class bridge():
             cv2.destroyAllWindows()
         else:
             cv2.waitKey(3)
-        
+            
+            
+    def colorImgPreProcess(self, image):
+        """
+        Prepare images to be analyzed in binary form by appling generic filtering.
+        This makes them easier to work with and the resulting image less noisy.
+        INPUT: image for pre-processing. Should be in color, though b&w ahould work.
+        OUTPUT: returns a RGB image which has been filtered and looks nicer.
+        """
+        #do processing on the image while it's still in color
+        image = cv2.medianBlur(image, 7)  #kernal size must be odd
+        image = cv2.bilateralFilter(image, 9, 75, 75)
+        self.closeImages()
+        return image
+            
     def __init__(self):
         image = cv2.imread('gimpBridge.jpg', cv2.IMREAD_COLOR)
-        print image
+        image = self.colorImgPreProcess(image)
         cv2.imshow('gimp bridge', image)
         self.closeImages()
         return
@@ -42,7 +56,7 @@ class bridge():
         #do processing on the image while it's still in color
         image = cv2.medianBlur(image, 7)  #kernal size must be odd
         image = cv2.bilateralFilter(image, 9, 75, 75)
-        closeImages()
+        self.closeImages()
         return image  
     
     
