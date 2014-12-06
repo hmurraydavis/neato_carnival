@@ -22,6 +22,14 @@ class bridge():
             cv2.destroyAllWindows()
         else:
             cv2.waitKey(3)
+    
+    
+    def __init__(self): #below closeImages so I can use close images in it!
+        image = cv2.imread('gimpBridge.jpg', cv2.IMREAD_COLOR)
+        image = self.colorImgPreProcess(image)
+        cv2.imshow('gimp bridge', image)
+        self.closeImages()
+        return
             
             
     def colorImgPreProcess(self, image):
@@ -36,28 +44,6 @@ class bridge():
         image = cv2.bilateralFilter(image, 9, 75, 75)
         self.closeImages()
         return image
-            
-    def __init__(self):
-        image = cv2.imread('gimpBridge.jpg', cv2.IMREAD_COLOR)
-        image = self.colorImgPreProcess(image)
-        cv2.imshow('gimp bridge', image)
-        self.closeImages()
-        return
-        
-    
-    def colorImgPreProcess(self, image):
-        """
-        Prepare images to be analyzed in binary form by appling generic filtering.
-        This makes them easier to work with and the resulting image less noisy.
-
-        INPUT: image for pre-processing. Should be in color, though b&w should work.
-        OUTPUT: returns a RGB image which has been filtered and looks nicer.
-        """
-        #do processing on the image while it's still in color
-        image = cv2.medianBlur(image, 7)  #kernal size must be odd
-        image = cv2.bilateralFilter(image, 9, 75, 75)
-        self.closeImages()
-        return image  
     
     
     def imageProcessRedCups(self, image):
@@ -91,6 +77,14 @@ class bridge():
 
         return returnImg(rgbDilated)
 
+    
+    def getContoursOfBridge(self, im):
+        imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
+        ret,thresh = cv2.threshold(imgray,127,255,0)
+        contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(img, contours, -1, (0,255,0), 3)
+        cv2.imshow('contored image!', im)
+        closeImages
           
     def findEdgesOfBridge(self):
         '''Finds the edges of the bridge so the robot can avoid driving off the 
@@ -105,3 +99,6 @@ class bridge():
         
 if __name__ == '__main__':
     bridge()
+    image = cv2.imread('gimpBridge.jpg', cv2.IMREAD_COLOR)
+    image = bridge.colorImgPreProcess(image)
+    bridge.getContoursOfBridge(image)
