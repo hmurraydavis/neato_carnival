@@ -7,20 +7,23 @@ import random
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import LaserScan
+from ar_pose import ARMarkers
 
 #import the games! 
 import bridge
 import tunnel
 import dominos
+import Fiducial
 
 bridge = bridge.bridge()
 tunnel = tunnel.tunnel()
 dominos = dominos.dominos()
+lookForRides = betweenRides.lookForRides()
 
 def pickMode(mode):
     '''Selects which mode to use and executes it.
     
-    INPUT: string saying which mode teh robot should be using
+    INPUT: string saying which mode the robot should be using
     OUTPUT: none
     '''
     nextMode = 'tunnel' #TODO: make behavors return next modevand delete this line
@@ -40,7 +43,7 @@ def pickMode(mode):
         return nextMode
     elif mode == 'inbetweenRides':
         #look for next ride to go on
-#        nextMode = lookForRides.do()
+        nextMode = lookForRides.do()
         return nextMode
     else:
         #default case
@@ -57,24 +60,30 @@ class ride():
     def __init__(self):
         '''Initialize the generic ride'''
         return
-    
-    
+
+    def getFiducal(self):
+        ''''Returns closest fiducial
+        
+        INPUT: array of marker values (contain position information)
+        OUTPUT: distance in meters of the neeto from the feducal radially'''
+
+        fiducial = Fiducial()
+        
+
     def distToFeducal(self):
         ''''Returns distance to the feducal
         
-        INPUT: image from neeto camera
+        INPUT: array of marker values (contain position information)
         OUTPUT: distance in meters of the neeto from the feducal radially'''
-        
-        return
+        return getFiducal[0]
         
     
     def whichFeducial(self):
-        '''Determines which feducal the robot can see. 
-        If more than one, it returns the one it likes the best/the biggest one
+        '''Determines the identity of the closest fiducial 
         
-        INPUT: image from neeto camera
+        INPUT: array of marker values (contain position information)
         OUTPUT: String saying which feducial the robot is looking at'''
-        return
+        return getFiducal[-1]
         
         
 if __name__ == '__main__':
