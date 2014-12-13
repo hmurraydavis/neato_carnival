@@ -6,14 +6,15 @@
   <node pkg="tf" type="static_transform_publisher" name="base_to_cam" 
     args="0.0381 0 0.0508 0 0 0 base_link camera 1" />
   <node pkg="tf" type="static_transform_publisher" name="cam_to_cam_frame" 
-    args="0 0 0 0 0 0 camera camera_frame 1" />
+    args="0 0 0 -1.57 0 -1.57 camera camera_frame 1" />
   
   <node name="ar_pose" pkg="ar_pose" type="ar_multi" respawn="false"
     output="screen">
     <param name="marker_pattern_list" type="string"
-      value="$(find ar_pose)/data/multi/object_letters"/>
+      value="$(find neato_carnival)/fiducials/object_letters"/>
     <param name="threshold" type="int" value="100"/>
   </node>
 
   
 </launch>
+ 

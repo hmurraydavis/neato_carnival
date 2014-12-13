@@ -1,0 +1,38 @@
+#the number of patterns to be recognized
+6
+
+#marker 1
+a
+data/multi/patt.a
+40.0
+0.0 0.0
+
+#marker 2
+b
+data/multi/patt.b
+40.0
+0.0 0.0
+
+#marker 3
+c
+data/multi/patt.c
+40.0
+0.0 0.0
+
+#marker 4
+d
+data/multi/patt.d
+40.0
+0.0 0.0
+
+#marker 5
+g
+data/multi/patt.g
+40.0
+0.0 0.0
+
+#marker 6
+f
+data/multi/patt.f
+40.0
+0.0 0.0

@@ -35,4 +35,5 @@ class Fiducial():
     def toFiducial(self,end_dist, end_angle):
         '''Actions for going to an identified fiducial
         OUTPUTS: Twist msg'''
+        # publish a geometry_msgs/PoseStamped messg to move_base_simple/goal
 

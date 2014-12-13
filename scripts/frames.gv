@@ -1,0 +1,7 @@
+digraph G {
+"base_link" -> "camera"[label="Broadcaster: /base_to_cam\nAverage rate: 883.396 Hz\nMost recent transform: 1418493815.222 \nBuffer length: 4.936 sec\n"];
+"odom" -> "base_link"[label="Broadcaster: /neato\nAverage rate: 5.217 Hz\nMost recent transform: 1418493814.999 \nBuffer length: 4.600 sec\n"];
+"camera" -> "camera_frame"[label="Broadcaster: /cam_to_cam_frame\nAverage rate: 885.416 Hz\nMost recent transform: 1418493815.221 \nBuffer length: 4.934 sec\n"];
+"base_link" -> "base_laser_link"[label="Broadcaster: /laser_to_base\nAverage rate: 20.148 Hz\nMost recent transform: 1418493815.244 \nBuffer length: 4.914 sec\n"];
+"odom" -> "map"[label="Broadcaster: /map_to_odom\nAverage rate: 20.143 Hz\nMost recent transform: 1418493815.256 \nBuffer length: 4.915 sec\n"];
+}
