@@ -5,6 +5,10 @@
     <rosparam file="$(find neato_2dnav)/params/local_costmap_params.yaml" command="load" />
     <rosparam file="$(find neato_2dnav)/params/global_costmap_params.yaml" command="load" />
     <rosparam file="$(find neato_2dnav)/params/base_local_planner_params.yaml" command="load" />
+
+    <rosparam file="$(find neato_carnival)/params/recover_behaviors_params.yaml" command="load" />
   </node>
+  <node pkg="tf" type="static_transform_publisher" name="map_to_odom"
+    args="0 0 0 0 0 0 odom map 50" />
 </launch>
 

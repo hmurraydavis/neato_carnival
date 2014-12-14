@@ -11,8 +11,8 @@ For new fiducials, make the pattern, move it to this folder, and add it to the o
  
 **Object_letters:**
 Syntax is:
-*name
-*file location
-*size in cm
-*location of center (measured from top left?)
+* name
+* file location
+* size in cm
+* location of center (measured from top left?)
  
