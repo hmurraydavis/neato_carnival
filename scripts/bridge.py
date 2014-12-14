@@ -6,6 +6,7 @@ import cv2
 
 class bridge():
     '''Behaviors to let the robot traverse the bridge and execute the behavior.'''
+    filepath = 'bridgePics'
     
     
     def closeImages(self):
@@ -79,12 +80,53 @@ class bridge():
 
     
     def getContoursOfBridge(self, im):
+        im = b.colorImgPreProcess(im)
         imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
         ret,thresh = cv2.threshold(imgray,127,255,0)
         contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-        cv2.drawContours(img, contours, -1, (0,255,0), 3)
-        cv2.imshow('contored image!', im)
-        closeImages
+######        cv2.drawContours(im, contours, -1, (0,255,0), 3)
+#######        cnt = contours[4]
+#######        cv2.drawContours(im, [cnt], 0, (0,255,0), 3)
+######        cv2.imshow('contored image!', im)
+######        gray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
+        edges = cv2.Canny(imgray,50,150,apertureSize = 3)
+        cv2.imshow("edges", edges)
+######        lines = cv2.HoughLines(edges,1,np.pi/180,200)
+#######        cv2.imshow("lines", lines)
+#######        cv2.HoughLines()
+######        for rho,theta in lines[0]:
+######            a = np.cos(theta)
+######            b = np.sin(theta)
+######            x0 = a*rho
+######            y0 = b*rho
+######            x1 = int(x0 + 1000*(-b))
+######            y1 = int(y0 + 1000*(a))
+######            x2 = int(x0 - 1000*(-b))
+######            y2 = int(y0 - 1000*(a))
+
+######        cv2.line(im,(x1,y1),(x2,y2),(0,0,255),2)
+
+######        cv2.imwrite('houghlines3.jpg',im)
+######        self.closeImages()
+
+##        edges = cv2.Canny(gray,50,150,apertureSize = 3)
+
+##        lines = cv2.HoughLines(edges,1,np.pi/180,200)
+##        for rho,theta in lines[0]:
+##            a = np.cos(theta)
+##            b = np.sin(theta)
+##            x0 = a*rho
+##            y0 = b*rho
+##            x1 = int(x0 + 1000*(-b))
+##            y1 = int(y0 + 1000*(a))
+##            x2 = int(x0 - 1000*(-b))
+##            y2 = int(y0 - 1000*(a))
+
+##            cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
+
+        cv2.imshow('houghlines3',im)
+        self.closeImages()
+##        print "done with contoring things."
           
     def findEdgesOfBridge(self):
         '''Finds the edges of the bridge so the robot can avoid driving off the 
@@ -98,7 +140,7 @@ class bridge():
         return
         
 if __name__ == '__main__':
-    bridge()
-    image = cv2.imread('gimpBridge.jpg', cv2.IMREAD_COLOR)
-    image = bridge.colorImgPreProcess(image)
-    bridge.getContoursOfBridge(image)
+    b = bridge()
+    image = cv2.imread('bridgePics/b0.jpg', cv2.IMREAD_COLOR)
+    image = b.colorImgPreProcess(image)
+    b.getContoursOfBridge(image)
