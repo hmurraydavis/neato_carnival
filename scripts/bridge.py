@@ -28,8 +28,8 @@ class bridge():
     def __init__(self): #below closeImages so I can use close images in it!
         image = cv2.imread('gimpBridge.jpg', cv2.IMREAD_COLOR)
         image = self.colorImgPreProcess(image)
-        cv2.imshow('gimp bridge', image)
-        self.closeImages()
+        #cv2.imshow('gimp bridge', image)
+        #self.closeImages()
         return
             
             
@@ -43,7 +43,7 @@ class bridge():
         #do processing on the image while it's still in color
         image = cv2.medianBlur(image, 7)  #kernal size must be odd
         image = cv2.bilateralFilter(image, 9, 75, 75)
-        self.closeImages()
+        #self.closeImages()
         return image
     
     
@@ -73,40 +73,50 @@ class bridge():
         rgbDilated = cv2.dilate(RGBMask, kernel, iterations=1)
 
         #    cv2.setMouseCallback("color mask",mouse_event,[])
-        cv2.imshow("color mask", RGBMask)
-        cv2.imshow('dilated image', rgbDilated)
+        #cv2.imshow("color mask", RGBMask)
+        #cv2.imshow('dilated image', rgbDilated)
 
         return returnImg(rgbDilated)
 
     
     def getContoursOfBridge(self, im):
         im = b.colorImgPreProcess(im)
+        
+        lower_redColor = np.array([220, 155, 50])
+        upper_redColor = np.array([255, 255, 255])
+        # Threshold the RGB image to get only red colors
+        RGBMask = cv2.inRange(image, lower_redColor, upper_redColor)
+        cv2.imshow('red mask', RGBMask)
         imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
-        ret,thresh = cv2.threshold(imgray,127,255,0)
+        ret,thresh = cv2.threshold(RGBMask,127,255,0)
         contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 ######        cv2.drawContours(im, contours, -1, (0,255,0), 3)
 #######        cnt = contours[4]
 #######        cv2.drawContours(im, [cnt], 0, (0,255,0), 3)
 ######        cv2.imshow('contored image!', im)
 ######        gray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
-        edges = cv2.Canny(imgray,50,150,apertureSize = 3)
+        edges = cv2.Canny(imgray,0,255,apertureSize = 5)
         cv2.imshow("edges", edges)
-######        lines = cv2.HoughLines(edges,1,np.pi/180,200)
-#######        cv2.imshow("lines", lines)
-#######        cv2.HoughLines()
-######        for rho,theta in lines[0]:
-######            a = np.cos(theta)
-######            b = np.sin(theta)
-######            x0 = a*rho
-######            y0 = b*rho
-######            x1 = int(x0 + 1000*(-b))
-######            y1 = int(y0 + 1000*(a))
-######            x2 = int(x0 - 1000*(-b))
-######            y2 = int(y0 - 1000*(a))
+        lines = cv2.HoughLines(edges,1,np.pi/180,200)
+        for rho,theta in lines:
+            print rho, theta, '\n'
+#        print 'ro is: ', len(rho)
+        
+#        cv2.imshow("lines", lines)
+#        cv2.HoughLines()
+        for rho,theta in lines[-1]:
+            a = np.cos(theta)
+            bb = np.sin(theta)
+            x0 = a*rho
+            y0 = bb*rho
+            x1 = int(x0 + 1000*(-bb))
+            y1 = int(y0 + 1000*(a))
+            x2 = int(x0 - 1000*(-bb))
+            y2 = int(y0 - 1000*(a))
 
-######        cv2.line(im,(x1,y1),(x2,y2),(0,0,255),2)
+        cv2.line(im,(x1,y1),(x2,y2),(0,0,255),2)
 
-######        cv2.imwrite('houghlines3.jpg',im)
+        cv2.imwrite('houghlines3.jpg',im)
 ######        self.closeImages()
 
 ##        edges = cv2.Canny(gray,50,150,apertureSize = 3)
@@ -124,7 +134,7 @@ class bridge():
 
 ##            cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
 
-        cv2.imshow('houghlines3',im)
+        #cv2.imshow('houghlines3',im)
         self.closeImages()
 ##        print "done with contoring things."
           
