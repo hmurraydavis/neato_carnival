@@ -86,6 +86,8 @@ class bridge():
         upper_redColor = np.array([255, 255, 255])
         # Threshold the RGB image to get only red colors
         RGBMask = cv2.inRange(image, lower_redColor, upper_redColor)
+        subtracted = im - RGBMask
+        cv2.imshow('subtracted', subtracted)
         cv2.imshow('red mask', RGBMask)
         imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
         ret,thresh = cv2.threshold(RGBMask,127,255,0)
