@@ -7,6 +7,9 @@
     args="0.0381 0 0.0508 0 0 0 base_link camera 1" />
   <node pkg="tf" type="static_transform_publisher" name="cam_to_cam_frame" 
     args="0 0 0 -1.57 0 -1.57 camera camera_frame 1" />
+
+  <node pkg="tf" type="static_transform_publisher" name="a_to_goal" 
+    args="0 0 0.5 0 -1.57 -1.57 a a_goal 1" />
   
   <node name="ar_pose" pkg="ar_pose" type="ar_multi" respawn="false"
     output="screen">
