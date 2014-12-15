@@ -16,4 +16,4 @@ Syntax is:
 * file location
 * size in cm
 * location of center (measured from top left?)
- 
+
