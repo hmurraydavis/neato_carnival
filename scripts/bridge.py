@@ -80,43 +80,49 @@ class bridge():
 
     
     def getContoursOfBridge(self, im):
+        cv2.imshow('image', im)
         im = b.colorImgPreProcess(im)
         
         lower_redColor = np.array([220, 155, 50])
         upper_redColor = np.array([255, 255, 255])
         # Threshold the RGB image to get only red colors
         RGBMask = cv2.inRange(image, lower_redColor, upper_redColor)
-        subtracted = im - RGBMask
-        cv2.imshow('subtracted', subtracted)
+        mask_inv = cv2.bitwise_not(RGBMask)
+        res = cv2.bitwise_and(im,im,mask = RGBMask)
+        res = cv2.bitwise_and(mask_inv,res, mask = mask_inv)
         cv2.imshow('red mask', RGBMask)
+        cv2.imshow('masked image', res)
         imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
         ret,thresh = cv2.threshold(RGBMask,127,255,0)
         contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
-######        cv2.drawContours(im, contours, -1, (0,255,0), 3)
-#######        cnt = contours[4]
-#######        cv2.drawContours(im, [cnt], 0, (0,255,0), 3)
-######        cv2.imshow('contored image!', im)
-######        gray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
-        edges = cv2.Canny(imgray,0,255,apertureSize = 5)
+
+#####        for row in res:
+#####            for collumn in res:
+#####                pixel = res[row, collumn][0][0]
+#####                if pixel.tolist() == [0,0,0]:
+#####                    pixel = np.array([0,0,0])
+######                    res[row,collumn] = [255,255,255]
+        cv2.imshow('res after switching to white', res)
+        edges = cv2.Canny(res,0,255,apertureSize = 5)
         cv2.imshow("edges", edges)
         lines = cv2.HoughLines(edges,1,np.pi/180,200)
-        for rho,theta in lines:
-            print rho, theta, '\n'
+##        for rho,theta in lines:
+##            print rho, theta, '\n'
 #        print 'ro is: ', len(rho)
         
 #        cv2.imshow("lines", lines)
 #        cv2.HoughLines()
-        for rho,theta in lines[-1]:
-            a = np.cos(theta)
-            bb = np.sin(theta)
-            x0 = a*rho
-            y0 = bb*rho
-            x1 = int(x0 + 1000*(-bb))
-            y1 = int(y0 + 1000*(a))
-            x2 = int(x0 - 1000*(-bb))
-            y2 = int(y0 - 1000*(a))
+##        for rho,theta in lines[-1]:
+##            a = np.cos(theta)
+##            bb = np.sin(theta)
+##            x0 = a*rho
+##            y0 = bb*rho
+##            x1 = int(x0 + 1000*(-bb))
+##            y1 = int(y0 + 1000*(a))
+##            x2 = int(x0 - 1000*(-bb))
+##            y2 = int(y0 - 1000*(a))
 
-        cv2.line(im,(x1,y1),(x2,y2),(0,0,255),2)
+##        cv2.line(im,(x1,y1),(x2,y2),(0,0,255),2)
 
         cv2.imwrite('houghlines3.jpg',im)
 ######        self.closeImages()
