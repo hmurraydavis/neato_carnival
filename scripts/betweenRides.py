@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 from geometry_msgs.msg import Twist, Vector3, PoseStamped, Pose, Point, Quaternion
 from std_msgs.msg import Header
 import rospy
@@ -32,9 +31,7 @@ class lookForRides():
             elif self.state == "going":
                 pass # toFiducial handles this.
             elif self.state == "arrived":
-                next = self.nextMode()
-                print next
-                return next
+                return self.nextMode()
             else:
                 print "invalid state"
                 return self.nextMode()
@@ -89,9 +86,10 @@ class lookForRides():
                 pass
 
     def toFiducial(self,data):
-        goal_status = data.status_list[-1].status
-        if self.state == "going" and goal_status == 3:
-            self.state = 'arrived'
+        if data.status_list:
+            goal_status = data.status_list[-1].status
+            if self.state == "going" and goal_status == 3:
+                self.state = 'arrived'
 
     def findFiducials(self):
         speed = Twist(angular=Vector3(z=0.2))
@@ -112,5 +110,5 @@ class lookForRides():
 if __name__ == "__main__":
     rospy.init_node('between', anonymous=True)
     go = lookForRides()
-    go.do()
+    print go.do()
 
