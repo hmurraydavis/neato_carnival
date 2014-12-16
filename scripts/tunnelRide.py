@@ -87,24 +87,44 @@ class TunnelRide():
 					view_env.append(0)
 			print view_env
 			#view-env is a 360-degree view of 0's and 1's.  we wanna go down the middle, straight ahead, towards 0's
-			hit_one_at_left = 0
-			hit_one_at_right = 181
-			for i in range(0,180):
-				if view_env[i] ==1:
-					hit_one_at_left = i
-					break
-			j=359
-			while j >=181:
-				if view_env[j] == 1:
-					hit_one_at_right = j
-					break
-				j-=1
-			right_val = -1*(359-hit_one_at_right)
-			window = hit_one_at_left - right_val
+			window = 0
+			window_middle = 0
+			if view_env[0] == 0:
+				hit_one_at_left = 0
+				hit_one_at_right = 181
+				for i in range(0,180):
+					if view_env[i] ==1:
+						hit_one_at_left = i
+						break
+				j=359
+				while j >=181:
+					if view_env[j] == 1:
+						hit_one_at_right = j
+						break
+					j-=1
+				right_val = -1*(359-hit_one_at_right)
+				window = hit_one_at_left - right_val
+				window_middle = (hit_one_at_left + right_val)/2.0
+			else:
+				longest_opening = 0
+				prev = 1
+				start = 0
+				current_streak=0
+				for i in range(-60,60):
+					if view_env[i]==0 and prev==0:
+						if current_streak == 0:
+							start = i
+						current_streak +=1
+					elif view_env[i]==1 and prev==0:
+						if current_streak > longest_opening:
+							longest_opening = current_streak
+						current_streak = 0
+					prev = view_env[i]
+				end = start + longest_opening
+				print "lo",longest_opening,start,end
+				window_middle = (end - start)/2.0
 			if window > 200:
-				self.state = STATE_DONE
-			window_middle = (hit_one_at_left + right_val)/2.0
-			angle_thru_tunnel = 0
+				self.state = STATE_DONE			
 			angle_thru_tunnel = window_middle
 			print "att",angle_thru_tunnel
 			self.publish_twist_message(.15, angle_thru_tunnel*.025) # proportional control
