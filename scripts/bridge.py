@@ -80,7 +80,7 @@ class bridge():
 
     
     def getContoursOfBridge(self, im):
-        #cv2.imshow('image', im)
+        cv2.imshow('image', im)
         im = b.colorImgPreProcess(im)
         
         lower_redColor = np.array([220, 155, 50])
@@ -88,12 +88,9 @@ class bridge():
         # Threshold the RGB image to get only red colors
         RGBMask = cv2.inRange(image, lower_redColor, upper_redColor)
         mask_inv = cv2.bitwise_not(RGBMask)
-        white = im
-        white[:] = [255,255,255]
         res = cv2.bitwise_and(im,im,mask = RGBMask)
-#        res = cv2.bitwise_or(white, res, mask = mask_inv)
-        res = res = cv2.bitwise_and(res,white,mask = mask_inv)
-        cv2.imshow('inv mask', mask_inv)
+        #res = cv2.bitwise_and(im, im, mask = mask_inv)
+        cv2.imshow('red mask', RGBMask)
         cv2.imshow('masked image', res)
         imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
         ret,thresh = cv2.threshold(RGBMask,127,255,0)
