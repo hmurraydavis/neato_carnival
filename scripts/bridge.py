@@ -80,6 +80,10 @@ class bridge():
 
     
     def getContoursOfBridge(self, im):
+        white_image = np.zeros((len(im), len(im[0]), 3), np.uint8)
+        white_image[:] = (0,0,0)
+        
+
         cv2.imshow('image', im)
         im = b.colorImgPreProcess(im)
         
@@ -89,9 +93,13 @@ class bridge():
         RGBMask = cv2.inRange(image, lower_redColor, upper_redColor)
         mask_inv = cv2.bitwise_not(RGBMask)
         res = cv2.bitwise_and(im,im,mask = RGBMask)
+        res = cv2.bitwise_not(white_image, res, mask = mask_inv)
+        cv2.imshow('res before blizzard', res)
         #res = cv2.bitwise_and(im, im, mask = mask_inv)
         cv2.imshow('red mask', RGBMask)
         cv2.imshow('masked image', res)
+        cv2.add(white_image, res, mask = mask_inv)
+        
         imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
         ret,thresh = cv2.threshold(RGBMask,127,255,0)
         contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -103,28 +111,10 @@ class bridge():
 #####                    pixel = np.array([0,0,0])
 ######                    res[row,collumn] = [255,255,255]
         cv2.imshow('res after switching to white', res)
-        edges = cv2.Canny(res,0,255,apertureSize = 5)
-        cv2.imshow("edges", edges)
-        lines = cv2.HoughLines(edges,1,np.pi/180,200)
-##        for rho,theta in lines:
-##            print rho, theta, '\n'
-#        print 'ro is: ', len(rho)
-        
-#        cv2.imshow("lines", lines)
-#        cv2.HoughLines()
-##        for rho,theta in lines[-1]:
-##            a = np.cos(theta)
-##            bb = np.sin(theta)
-##            x0 = a*rho
-##            y0 = bb*rho
-##            x1 = int(x0 + 1000*(-bb))
-##            y1 = int(y0 + 1000*(a))
-##            x2 = int(x0 - 1000*(-bb))
-##            y2 = int(y0 - 1000*(a))
 
-##        cv2.line(im,(x1,y1),(x2,y2),(0,0,255),2)
+        #lines = cv2.HoughLines(edges,1,np.pi/180,200)
 
-        cv2.imwrite('houghlines3.jpg',im)
+        #cv2.imwrite('houghlines3.jpg',im)
 ######        self.closeImages()
 
 ##        edges = cv2.Canny(gray,50,150,apertureSize = 3)
@@ -146,9 +136,15 @@ class bridge():
         self.closeImages()
 ##        print "done with contoring things."
           
-    def findEdgesOfBridge(self):
+    def findEdgesOfBridge(self, im):
         '''Finds the edges of the bridge so the robot can avoid driving off the 
         bridge.'''
+        ## Im should be ready to have edge detection run on it. 
+        edges = cv2.Canny(im,0,255,apertureSize = 5)
+        cv2.imshow("edges detected on input image", edges)
+        
+        #cv2.HoughLinesP(image, rho, theta, threshold[, lines[, minLineLength[, maxLineGap]]]) -->lines
+        cv2.HoughLinesP(edges, 1, 1)
         return
         
     def printBridge(self):
