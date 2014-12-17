@@ -12,7 +12,7 @@ from actionlib_msgs.msg import GoalStatusArray
 import tf.transformations as transform
 
 
-class lookForRides():
+class RideFinder():
     def __init__(self):
         self.fiducial = Pose(orientation=Quaternion(w=1))
         self.name = 'z'
@@ -110,6 +110,6 @@ class lookForRides():
 
 if __name__ == "__main__":
     rospy.init_node('between', anonymous=True)
-    go = lookForRides()
+    go = RideFinder()
     print go.do()
 

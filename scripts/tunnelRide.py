@@ -6,37 +6,34 @@ from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import LaserScan
 import cv2
 
-STATE_NAVIGATE_TO_FRONT = 0
-STATE_DRIVE_THRU = 1
-STATE_DONE = 2
-
 class TunnelRide():
 
-	def __init__(self, fid1, fid2):
-		rospy.init_node('tunnel_ride', anonymous=True)
-		self.state = STATE_DRIVE_THRU
-		self.fid1 = fid1 #(0,0) distance, angle in degrees
-		self.fid2 = fid2
+	def __init__(self):
+		#rospy.init_node('tunnel_ride', anonymous=True)
+		self.STATE_DRIVE_THRU = 1
+		self.STATE_DONE = 2
+		self.state = self.STATE_DRIVE_THRUd2
 		self.sub = rospy.Subscriber('scan', LaserScan, self.scan_received)
 		self.pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
 
-	def run(self):
+
+	def do(self):
 		r = rospy.Rate(10)
-		while not rospy.is_shutdown():
+		while not rospy.is_shutdown() and self.state != self.STATE_DONE:
 			print self.state
 			# check state and run appropriate command
-			if self.state == STATE_NAVIGATE_TO_FRONT:
+			if self.state == self.STATE_NAVIGATE_TO_FRONT:
 				vel, ang_vel = self.find_front_of_tunnel()
 				self.publish_twist_message(vel, ang_vel)
 
-			elif self.state == STATE_DRIVE_THRU:
+			elif self.state == self.STATE_DRIVE_THRU:
 				pass
 				# 	vel, ang_vel = self.drive_thru_tunnel_with_lidar()
-			elif self.state == STATE_DONE:
+			elif self.state == self.STATE_DONE:
 				self.publish_twist_message(0,0)
 
 			r.sleep ()
-
+		return True
 
 	def publish_twist_message(self, vel, ang_vel):
 		msg = Twist (Vector3 (vel, 0, 0), Vector3 (0, 0, ang_vel))
@@ -73,12 +70,12 @@ class TunnelRide():
 				desired_angle = (angle_to_fid1 + angle_to_fid2)/2.0
 				return 0, desired_angle*.5 # proportional control
 			else:	
-				self.state = STATE_DRIVE_THRU
+				self.state = self.STATE_DRIVE_THRU
 
 	def scan_received(self, msg):
 
 		print "scanning"
-		if self.state == STATE_DRIVE_THRU:
+		if self.state == self.STATE_DRIVE_THRU:
 			view_env = []
 			for reading in msg.ranges:
 				if reading > .1 and reading < 2:
@@ -124,7 +121,7 @@ class TunnelRide():
 				print "lo",longest_opening,start,end
 				window_middle = (end - start)/2.0
 			if window > 200:
-				self.state = STATE_DONE			
+				self.state = self.STATE_DONE			
 			angle_thru_tunnel = window_middle
 			print "att",angle_thru_tunnel
 			self.publish_twist_message(.15, angle_thru_tunnel*.025) # proportional control
@@ -133,6 +130,6 @@ class TunnelRide():
 
 if __name__ == '__main__':
 	try:
-		node = TunnelRide((0,0),(0,0))
-		node.run()
+		node = TunnelRide()
+		node.do()
 	except rospy.ROSInterruptException: pass

@@ -25,7 +25,7 @@ class DominoRide():
 		self.bridge = CvBridge()
 		self.targets = []
 
-	def run(self):
+	def do(self):
 		r = rospy.Rate(10)
 		while not rospy.is_shutdown():
 
@@ -107,5 +107,5 @@ class DominoRide():
 if __name__ == '__main__':
 	try:
 		node = DominoRide()
-		node.run()
+		node.do()
 	except rospy.ROSInterruptException: pass

@@ -11,14 +11,14 @@ from ar_pose import ARMarkers
 
 #import the games! 
 import bridge
-import tunnel
+import tunnelRide
 import dominos
 import Fiducial
 
 bridge = bridge.bridge()
-tunnel = tunnel.tunnel()
+tunnel = tunnelRide.tunnelRide()
 dominos = dominos.dominos()
-lookForRides = betweenRides.lookForRides()
+finder = betweenRides.RideFinder()
 
 def pickMode(mode):
     '''Selects which mode to use and executes it.
@@ -26,7 +26,9 @@ def pickMode(mode):
     INPUT: string saying which mode the robot should be using
     OUTPUT: none
     '''
-    nextMode = 'tunnel' #TODO: make behavors return next modevand delete this line
+
+    print mode
+    #nextMode = 'tunnel' #TODO: make behavors return next modevand delete this line
     
     if mode == 'bridge':
         #bridge stuff
@@ -35,15 +37,15 @@ def pickMode(mode):
         return nextMode
     elif mode == 'dominos':
         #knock over dominos
-        nextMode = dominos.do()
-        return nextMode
+        dominos.do()
+        return 'inbetweenRides'
     elif mode == 'tunnel':
         #go through tunnels!
-        nextMode = tunnel.do()
-        return nextMode
+       	tunnel.do()
+        return 'inbetweenRides'
     elif mode == 'inbetweenRides':
         #look for next ride to go on
-        nextMode = lookForRides.do()
+        nextMode = finder.do()
         return nextMode
     else:
         #default case
@@ -94,12 +96,13 @@ if __name__ == '__main__':
     # ride = ride()
 #    bridge = bridge()
     # pickMode('bridge')
+    mode = 'inbetweenRides'
     try:
        rospy.init_node('carnival', anonymous=True)
 #        pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
 #        sub = rospy.Subscriber('scan', LaserScan, read_in_laser)
 
-        while not True: #rospy.is_shutdown(): #TODO uncomment ros stuff
+        while not rospy.is_shutdown(): #TODO uncomment ros stuff
             mode = pickMode(mode)
     except True: pass
 #        rospy.ROSInterruptException: pass
