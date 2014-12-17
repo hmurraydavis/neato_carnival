@@ -91,11 +91,11 @@ if __name__ == '__main__':
     indivigual behaviors yield controls
     INPUT: none
     OUTPUT: none'''
-    ride = ride()
+    # ride = ride()
 #    bridge = bridge()
-    pickMode('bridge')
+    # pickMode('bridge')
     try:
-#        rospy.init_node('carnival', anonymous=True)
+       rospy.init_node('carnival', anonymous=True)
 #        pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
 #        sub = rospy.Subscriber('scan', LaserScan, read_in_laser)
 

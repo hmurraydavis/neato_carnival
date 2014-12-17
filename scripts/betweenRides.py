@@ -62,6 +62,7 @@ class lookForRides():
                 self.fiducial = closest[2]
                 self.name = self.IDtoName(closest[1])
                 self.sendFiducial()
+                print "sent"
                 self.state = "going"
 
     def sendFiducial(self):
@@ -99,9 +100,9 @@ class lookForRides():
     def nextMode(self):
         # set up which fiducal coresponds to which challenge
         if self.name == 'a':
-            return 'bridge'
-        elif self.name == 'b':
             return 'tunnel'
+        elif self.name == 'b':
+            return 'bridge'
         elif self.name == 'c':
             return 'dominos'
         else:

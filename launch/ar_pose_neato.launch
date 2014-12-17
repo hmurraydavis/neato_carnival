@@ -9,7 +9,7 @@
     args="0 0 0 -1.57 0 -1.57 camera camera_frame 1" />
 
   <node pkg="tf" type="static_transform_publisher" name="a_to_goal" 
-    args="0 0 0.5 0 -1.57 -1.57 a a_goal 1" />
+    args="0 0.5 0.5 0 -1.57 -1.57 a a_goal 1" />
   <node pkg="tf" type="static_transform_publisher" name="b_to_goal" 
     args="0 0 0.5 0 -1.57 -1.57 b b_goal 1" />
   <node pkg="tf" type="static_transform_publisher" name="c_to_goal" 
