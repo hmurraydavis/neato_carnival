@@ -117,10 +117,20 @@ class bridge():
             im = b.colorImgPreProcess(im)
             #im = cv2.blur(im,(5,5))
         edges = cv2.Canny(im,0,255,apertureSize = 5)
-        cv2.imshow("edges detected on input image", edges)
+        #cv2.imshow("edges detected on input image", edges)
         
         #cv2.HoughLinesP(image, rho, theta, threshold[, lines[, minLineLength[, maxLineGap]]]) -->lines
-        cv2.HoughLinesP(edges, 1, 1, 30)
+        lines = cv2.HoughLinesP(edges, 1, .1, 10)
+        if len(lines)>0: #only print if lines are found so it doesn't error
+            print 'type: ', type(lines), 'Length: ', len(lines), 'lies are: \n', lines
+        else: print 'no lines found'
+        
+        for line in lines[0]:
+
+            x1,y1,x2,y2 = line
+            #cv2.line(img, pt1, pt2, color[, thickness[, lineType[, shift]]]) --> none
+            cv2.line(im, (x1,y1), (x2,y2), [150,0,100],3)
+        cv2.imshow('image with lines', im)
         self.closeImages()
         return
         
