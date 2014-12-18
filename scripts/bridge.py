@@ -148,16 +148,30 @@ class Bridge():
         return lines[0]
     
     def cropBridge(self, im):
+        '''Crop the image to the lower bit where the bridge is.
+        
+        INPUT: image ready for cropping
+        OUTPUT: cropped image
+        **Note: this does no swanky magic to look for the bridge. It just crops 
+            to a section of the botom of the image.'''
         dimensions_image = im.shape
         height = dimensions_image[0]
         width = dimensions_image[1]
         #print width ,'x', height
         crop_img = im[int(height*1.3/3):height, 0:width]            
         cv2.imshow('Croped image', crop_img)
-        self.closeImages()
+        self.closeImages() #comment if you don't want to show the croped image
         return crop_img
         
     def getLargestGap(self, im):
+        '''Finds the largest "gap" in the image as defined by a refion of the image where the sum of the columns is below a threshold.
+        
+        INPUT: Image
+        OUTPUT Dictionary with keys: 
+            startPT == The starting pixel of the largest gap
+            endPT == The ending pixel of the largest gap
+            lengthGap == The length of the largest gap'''
+        #initialize ALL the variables!
         dimensions_image = im.shape
         height = dimensions_image[0]
         width = dimensions_image[1]
@@ -185,6 +199,8 @@ class Bridge():
                     largest_gap['lengthGap'] = length_current_gap
                     largest_gap['startPT'] = curentStartPt
                     largest_gap['endPT'] = currentEndPt
+        
+        #Ilistrate the features for validation:
         #cv2.rectangle(img, pt1, pt2, color[, thickness[, lineType[, shift]]])
         cv2.rectangle(im, (largest_gap['startPT'],0), (largest_gap['endPT'],30), [0,200,0], 3)
         
@@ -202,12 +218,24 @@ class Bridge():
         return {'center_of_gap': centerOfGap, 'robot_center':robotCenterInFrame}
         
     def steerRobotOnBridge(self, centerOfGap, robotCenter):
+        '''Physically stears the robot by writing the correct velocity and 
+        turning commands to it. Stearing is done through portional control 
+        with the difference between the center of the largest gap in the image 
+        and the center of the image.
+        
+        INPUT: Integer representing center of the largest gap found by the robot
+        OUTPUT: Integer representing center of the image, used to determine how 
+                far off center the robot is
+        EFFECT: The robot turns and moves forward. Turning is porportional to 
+        how far awway from the center of the image the largest gap is.
+        '''
         K = .06 #PID constant
         portion = math.abs(centerOfGap - robotCenter)
         turnAmount = K * portion
         
         speed=Vector3(float(xspeed),0.0,0.0) 
         
+        #uses if statements because without having the current heading, simple subtraction isn't that robust'
         if centerOfGap < robotCenter: #Gap is to the left of the robot's center
             #turn left
             angular=Vector3(0.0,0.0,math.fabs(float(turnAmount)))
@@ -222,19 +250,19 @@ class Bridge():
     
         
     def printBridge(self):
+        '''Test function for Bridge class. Prints a message about bridges.
+        INPUT: None
+        OUTPUT: None'''
         print 'Bridges are pretty!'
         
-#    def run(self):
-#        '''Get camera images and publish the current, set point velocity
-#        '''
-#        self.running = True
-#        self.sub = rospy.Subscriber('camera/image_raw', Image, self.image_received)
-#        rate = rospy.Rate(20)
-#        while not rospy.is_shutdown() and self.running:
-#            self.pub.publish(self.cmd_vel)
-#            rate.sleep()
     
     def image_recieved(self,msg):
+        '''Callback function which processes images as they ae received from the
+        camera. This makes all the image processing happen. Also gts image from
+        camera given an image 
+        
+        INPUT: ROS Image message
+        OUTPUT: None'''
         print "image"
         img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
         #cv2.imshow('test',img)
@@ -243,6 +271,12 @@ class Bridge():
         
         
     def do_stuff(self, image):
+        '''Controls the progression of image procession and which functionality 
+        gets executed.
+        
+        INPUT: BGR Image
+        OUTPUT: Nome
+        Effect: The robot beautifuly drives across the bridge without falling off'''
         image = b.colorImgPreProcess(image)
         image = b.getContoursOfBridge(image)
 #        b.findEdgesOfBridge(image)
@@ -253,12 +287,16 @@ class Bridge():
         b.closeImages()
         
     def do(self):
+        '''Function which is called by the Finite State Controler managing 
+        the robot's progression
+        
+        INPUT: none
+        OUTPUT: none'''
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
             r.sleep ()
         
 if __name__ == '__main__':
-    
     rospy.init_node('between', anonymous=True)
     robo_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     b = Bridge(robo_pub)
