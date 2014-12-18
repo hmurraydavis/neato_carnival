@@ -138,17 +138,13 @@ class bridge():
         return
     
     def cropBridge(self, im):
-        height = len(im[0])
-        width = len(im[1])
-        print width ,'x', height
-        crop_img = im[int(height*1.3/3):height, 0:width]
-        cv2.imshow('cropped image', crop_img)
-        height = len(crop_img[0][0])
-        width = len(crop_img[1])
-        print width ,'x', height
-#        crop_img = im[int(height*1.5/3):height, 0:width]
-#        cv2.imshow('cropped image 2', crop_img)
+        dimensions_image = im.shape
+        height = dimensions_image[0]
+        width = dimensions_image[1]
+        #print width ,'x', height
+        crop_img = im[int(height*1.3/3):height, 0:width]            
         self.closeImages()
+        return crop_img
         
     def getLargestGap(self, im):
         np.ndarray.sum([3])
