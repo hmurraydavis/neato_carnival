@@ -15,6 +15,7 @@ class Bridge():
     cmd_vel = Twist(Vector3(0.0,0.0,0.0),Vector3(0.0,0.0,0.0))
     
     
+    
     def closeImages(self):
         """
         Close images opened by Open CV, addresses the different method of closing
@@ -37,6 +38,7 @@ class Bridge():
         self.pub = publisher
         self.cam = rospy.Subscriber('camera/image_raw',Image, self.image_recieved)
         self.bridge = CvBridge()
+        self.testing = False #flag for wheter ot not to use the Stupid By Design slidey bars
         
         return
         
@@ -66,30 +68,59 @@ class Bridge():
         #image = cv2.bilateralFilter(image, 9, 75, 75) #TODO: uncomment and make it not error
         #self.closeImages()
         return image
-    
-    
 
-
-    
+    def nothing(self, x):
+        pass
+        
+        
     def getContoursOfBridge(self, im):
         white_image = np.zeros((len(im), len(im[0]), 3), np.uint8)
         white_image[:] = (0,0,0)
         
-
         cv2.imshow('image', im)
-        im = b.colorImgPreProcess(im)
+        im = self.colorImgPreProcess(im)
         
-        lower_redColor = np.array([220, 155, 50])
-        upper_redColor = np.array([255, 255, 255])
+        rLower = 50
+        gLower = 100
+        bLower = 100
+
+        BUpper = 255
+        GUpper = 255
+        RUpper = 255
+        
+        if self.testing == True:
+            cv2.createTrackbar('Red lower','image',0,255,self.nothing)
+            cv2.createTrackbar('Green lower','image',0,255,self.nothing)
+            cv2.createTrackbar('Blue lower','image',0,255,self.nothing)
+            
+            cv2.createTrackbar('Red upper','image',0,255,self.nothing)
+            cv2.createTrackbar('Green upper','image',0,255,self.nothing)
+            cv2.createTrackbar('Blue upper','image',0,255,self.nothing)
+#            
+            if rLower != cv2.getTrackbarPos('Red lower','image'):
+                rLower = cv2.getTrackbarPos('Red lower','image')
+            if gLower != cv2.getTrackbarPos('Green lower','image'):
+                gLower = cv2.getTrackbarPos('Green lower','image')
+            if bLower != cv2.getTrackbarPos('Blue lower','image'):
+                bLower = cv2.getTrackbarPos('Blue lower','image')
+            
+            RUpper = cv2.getTrackbarPos('Red upper','image')
+            GUpper = cv2.getTrackbarPos('Green upper','image')
+            BUpper = cv2.getTrackbarPos('Blue upper','image')
+
+        
+        lower_redColor = np.array([bLower, gLower, rLower])
+        upper_redColor = np.array([BUpper, GUpper, RUpper])
         # Threshold the RGB image to get only red colors
         RGBMask = cv2.inRange(im, lower_redColor, upper_redColor)
         mask_inv = cv2.bitwise_not(RGBMask)
-        res = cv2.bitwise_and(im,im,mask = RGBMask)
-        res = cv2.bitwise_not(white_image, res, mask = mask_inv)
         
-        imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
-        ret,thresh = cv2.threshold(RGBMask,127,255,0)
-        contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
+        res = cv2.bitwise_and(im,im,mask = RGBMask) #Get the bridge parts of the image
+        res = cv2.bitwise_not(white_image, res, mask = mask_inv) #put them on a white background
+        
+#        imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
+#        ret,thresh = cv2.threshold(RGBMask,127,255,0)
+#        contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
 #####        for row in res:
 #####            for collumn in res:
@@ -97,7 +128,7 @@ class Bridge():
 #####                if pixel.tolist() == [0,0,0]:
 #####                    pixel = np.array([0,0,0])
 ######                    res[row,collumn] = [255,255,255]
-        #cv2.imshow('rturened (res) image', res)
+        cv2.imshow('rturened (res) image', res)
         self.closeImages()
         return res
           
@@ -137,6 +168,7 @@ class Bridge():
         width = dimensions_image[1]
         #print width ,'x', height
         crop_img = im[int(height*1.3/3):height, 0:width]            
+        cv2.imshow('Croped image', crop_img)
         self.closeImages()
         return crop_img
         
@@ -220,7 +252,7 @@ class Bridge():
     def image_recieved(self,msg):
         print "image"
         img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
-        cv2.imshow('test',img)
+        #cv2.imshow('test',img)
         self.do_stuff(img)
         cv2.waitKey(3)
         
@@ -232,7 +264,7 @@ class Bridge():
         image = b.cropBridge(image)
         gap_and_robot_locations = b.getLargestGap(image)
         
-        b.steerRobotOnBridge(gap_and_robot_locations['centerOfGap'], gap_and_robot_locations[robot_center])
+        b.steerRobotOnBridge(gap_and_robot_locations['centerOfGap'], gap_and_robot_locations['robot_center'])
         b.closeImages()
         
     def do(self):
