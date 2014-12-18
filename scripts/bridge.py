@@ -183,9 +183,11 @@ class bridge():
         
         #draw the line that's the center of the largest gap
         centerOfGap = largest_gap['startPT'] + (largest_gap['lengthGap']/2)
+        cv2.line(im, (centerOfGap,0), (centerOfGap, 40), [200,0,0], 3)
         
         cv2.imshow('largest gap', im)
         self.closeImages()
+        return {'center_of_gap': centerOfGap, 'robot_center':robotCenterInFrame}
         
         
     def printBridge(self):
