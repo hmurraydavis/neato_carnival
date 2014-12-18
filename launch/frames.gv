@@ -1,0 +1,11 @@
+digraph G {
+"camera" -> "camera_frame"[label="Broadcaster: /cam_to_cam_frame\nAverage rate: 875.307 Hz\nMost recent transform: 1418761693.714 \nBuffer length: 4.937 sec\n"];
+"base_link" -> "camera"[label="Broadcaster: /base_to_cam\nAverage rate: 881.887 Hz\nMost recent transform: 1418761693.714 \nBuffer length: 4.934 sec\n"];
+"odom" -> "base_link"[label="Broadcaster: /neato\nAverage rate: 5.207 Hz\nMost recent transform: 1418761693.576 \nBuffer length: 4.801 sec\n"];
+"a" -> "a_goal"[label="Broadcaster: /a_to_goal\nAverage rate: 877.178 Hz\nMost recent transform: 1418761693.714 \nBuffer length: 4.935 sec\n"];
+"c" -> "c_goal"[label="Broadcaster: /c_to_goal\nAverage rate: 886.354 Hz\nMost recent transform: 1418761693.715 \nBuffer length: 4.929 sec\n"];
+"b" -> "b_goal"[label="Broadcaster: /b_to_goal\nAverage rate: 874.795 Hz\nMost recent transform: 1418761693.714 \nBuffer length: 4.928 sec\n"];
+"camera_frame" -> "b"[label="Broadcaster: /ar_pose\nAverage rate: 15.498 Hz\nMost recent transform: 1418761693.674 \nBuffer length: 3.678 sec\n"];
+"base_link" -> "base_laser_link"[label="Broadcaster: /laser_to_base\nAverage rate: 20.161 Hz\nMost recent transform: 1418761693.722 \nBuffer length: 4.861 sec\n"];
+"odom" -> "map"[label="Broadcaster: /map_to_odom\nAverage rate: 20.115 Hz\nMost recent transform: 1418761693.741 \nBuffer length: 4.872 sec\n"];
+}

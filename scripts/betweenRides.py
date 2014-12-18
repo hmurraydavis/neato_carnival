@@ -11,9 +11,9 @@ from ar_pose.msg import ARMarkers
 from actionlib_msgs.msg import GoalStatusArray
 import tf.transformations as transform
 
-from tunnelRide import TunnelRide
 
 class RideFinder():
+
     def __init__(self, robo_pub):
         self.fiducial = Pose(orientation=Quaternion(w=1))
         self.name = 'z'
@@ -43,9 +43,11 @@ class RideFinder():
                 return self.nextMode()
 
     def IDtoName(self,markerID):
+        d = {0: 'a', 1:'b', 2:'c', 3:'d', 4:'f', 5:'g'}
         # for IDs: 0 -> a, 1 -> b, ...
         # In ascii: a -> 97, b -> 98, ...
-        return chr(markerID+97)
+        #return chr(markerID+97)
+        return d[markerID]
 
     def getFiducials(self,data):
         ''' IN: an array of markers from ar_pose
@@ -80,7 +82,7 @@ class RideFinder():
                 self.listener.waitForTransform('/map',
                                           '/'+self.name+"_goal", 
                                           rospy.Time(0),
-                                          rospy.Duration(10))
+                                          rospy.Duration(60))
                 speed = Twist(angular=Vector3(z=0))
                 self.robo_pub.publish(speed)
                 (g_trans,g_rot) = self.listener.lookupTransform('/map',
@@ -120,23 +122,3 @@ class RideFinder():
             return 'dominos'
         else:
             return 'error'
-
-if __name__ == "__main__":
-    rospy.init_node('between', anonymous=True)
-    robo_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
-    between = RideFinder(robo_pub)
-    tunnel = TunnelRide(robo_pub)
-
-    while True:
-        print "----NEXT---"
-        between.reset()
-        mode = between.do()
-        print mode
-        if mode == "tunnel":
-            print "DOING TUNNEL"
-            tunnel.reset()
-            tunnel.do()
-            mode = 'between'
-        else:
-            break
-

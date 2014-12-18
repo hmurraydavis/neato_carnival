@@ -13,7 +13,7 @@
   <node pkg="tf" type="static_transform_publisher" name="b_to_goal" 
     args="0 0 0.5 0 -1.57 -1.57 b b_goal 1" />
   <node pkg="tf" type="static_transform_publisher" name="c_to_goal" 
-    args="0 0 0.5 0 -1.57 -1.57 c c_goal 1" />
+    args="-0.2 0 0 0 -1.57 -1.57 c c_goal 1" />
   
   <node name="ar_pose" pkg="ar_pose" type="ar_multi" respawn="false"
     output="screen">

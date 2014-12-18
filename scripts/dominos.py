@@ -21,58 +21,78 @@ from actionlib_msgs.msg import GoalStatusArray
 from betweenRides import RideFinder
 
 
-class DominoRide(RideFinder):
+class DominoRide():
 
-    def __init__(self):
-        rospy.init_node('domino_ride', anonymous=True)
+    def __init__(self,robo_pub):
+        # rospy.init_node('domino_ride', anonymous=True)
         self.STATE_DONE = 0
         self.STATE_LOCATE_TARGETS = 1
         self.STATE_KNOCK_TARGET = 2
         self.STATE_RETURN = 3
         self.STATE_SEND_ONE = 4
-        self.fiducial = Pose(orientation=Quaternion(w=1))
-        self.state = self.STATE_LOCATE_TARGETS
+        self.STATE_WAITING = 5
+        self.STATE_FOUND_TARGET = 6
+        self.state = self.STATE_WAITING
         self.red_fiducial_names = []
         self.red_centers = []
-        self.pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
+        self.targets = []
+        self.poses = []
+        self.pub = robo_pub
         self.goal_pub = rospy.Publisher('/move_base_simple/goal',PoseStamped)
         self.listener = tf.TransformListener()
         self.cam = rospy.Subscriber('camera/image_raw',Image, self.image_recieved)
         self.bridge = CvBridge()
+        self.origin = PoseStamped()
+
+    def reset(self):
+        self.state = self.STATE_WAITING
+        self.red_fiducial_names = []
+        self.red_centers = []
         self.targets = []
 
     def do(self):
+        self.state = self.STATE_LOCATE_TARGETS
+        self.getOrigin()
         fiducial_sub = rospy.Subscriber('ar_pose_marker', ARMarkers, self.getFiducials)
         goal_sub = rospy.Subscriber('move_base/status',GoalStatusArray,self.toFiducial)
         r = rospy.Rate(10)
         while not rospy.is_shutdown():
+
             print self.state
-            if self.state == self.STATE_KNOCK_TARGET or self.state == self.STATE_SEND_ONE or self.state == self.STATE_RETURN:
-                if len(self.red_fiducial_names) > 0:
-                    if self.state == self.STATE_SEND_ONE:
-                        self.name = self.IDtoName(self.red_fiducial_names[0])
-                        self.sendFiducial()
-                        self.state = self.STATE_KNOCK_TARGET
-                    elif self.state == self.STATE_RETURN:
-                        for i in range(5): #back up
-                            self.publish_twist_message(-2,0)
-                        self.state = self.STATE_KNOCK_TARGET
+            if self.state == self.STATE_LOCATE_TARGETS:
+                for name in self.red_fiducial_names:
+                    n = self.IDtoName(name)
+                    self.poses.append(self.getPose(n))
+                print self.poses
+                if len(self.poses)>0:
+                    pose = self.poses[0]
+                    self.toPose(pose)
+                    self.state = self.STATE_KNOCK_TARGET
+            elif self.state == self.STATE_FOUND_TARGET:
+                print "wooo"
+                for i in range(5):
+                    self.publish_twist_message(-.5,-.5)
+                if len(self.poses) > 0:
+                    pose = self.poses[0]
+                    self.toPose(pose)
+                    self.state = self.STATE_KNOCK_TARGET
                 else:
-                    self.state = self.STATE_DONE
+                    self.toOrigin()
+                    self.state = self.STATE_RETURN
 
             elif self.state == self.STATE_DONE:
                 self.publish_twist_message(0,0)
-                break
+                return True
             
-            r.sleep ()
-
-    def sendFiducial(self):
+            r.sleep()
+    '''
+    def sendFiducial(self, name):
         print "sending"
         sent = False
         while not sent:
             try:
                 (g_trans,g_rot) = self.listener.lookupTransform('/map',
-                                                                '/'+self.name, 
+                                                                '/'+name, 
                                                                 rospy.Time(0))
                 euler = transform.euler_from_quaternion(g_rot)
                 rot = transform.quaternion_from_euler(0,0,euler[2]+3.14)
@@ -87,14 +107,24 @@ class DominoRide(RideFinder):
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException),e:
                 print e
         print "sent"
-
+    '''
     def toFiducial(self,data):
+        #print self.state
         if self.state == self.STATE_KNOCK_TARGET:
-            print "going"
             if data.status_list:
                 goal_status = data.status_list[-1].status
-                if self.state == self.STATE_KNOCK_TARGET and goal_status == 3:
-                    self.state = self.STATE_RETURN
+                #print "goal",goal_status
+                if goal_status == 3:
+                    print "GOAL"
+                    self.state = self.STATE_FOUND_TARGET
+                    if self.poses:
+                        self.poses.pop(0)
+        if self.state == self.STATE_RETURN:
+            if data.status_list:
+                goal_status = data.status_list[-1].status
+                if goal_status == 3:
+                    self.state == self.STATE_DONE
+        
 
     def getFiducials(self,data):
         ''' IN: an array of markers from ar_pose
@@ -104,34 +134,60 @@ class DominoRide(RideFinder):
         if self.state == self.STATE_LOCATE_TARGETS:
             markers = data.markers
             allFiducals = []
-            print "blah"
+            print "find fiducials"
             for fiducial in markers:
-                print "finding"
                 markderID = fiducial.id
                 fpose = fiducial.pose.pose
                 x = fpose.position.x
-                y = fpose.position.y
-                dist = (x**2 + y**2)**0.5
                 allFiducals.append((x, fpose, markderID))
             # If found any:
             if allFiducals:
                 self.publish_twist_message(0,0)
                 allFiducals.sort(key=lambda tup: tup[0])
-                print len(allFiducals)
-                print len(self.targets)
                 if len(allFiducals) == len(self.targets):
                     for i in range(len(allFiducals)):
-                        print "target",self.targets[i]
-                        print self.red_centers
                         if self.targets[i] in self.red_centers:
                             self.red_fiducial_names.append(allFiducals[i][2])
+            # if len(self.red_fiducial_names) > 0:
+            #     self.state = self.STATE_LOCATE_TARGETS
 
-                        # self.fiducial = closest[2]
-                        # self.name = self.IDtoName(closest[1])
-                        # self.sendFiducial()
-            print self.red_fiducial_names
-            if len(self.red_fiducial_names) > 0:
-                self.state = self.STATE_SEND_ONE
+    def getOrigin(self):
+        saved = False
+        while not saved:
+            try:
+                (trans,rot) = self.listener.lookupTransform('/map','/base_link',rospy.Time(0))
+                point = Point(trans[0],trans[1],trans[2])
+                quat = Quaternion(rot[0],rot[1],rot[2],rot[3])
+                self.origin = PoseStamped(header = Header(stamp=rospy.Time.now(),
+                                                       frame_id="/map"), 
+                                       pose = Pose(point,quat))
+                saved = True
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException),e:
+                print e
+    def toOrigin(self):
+        self.goal_pub.publish(self.origin)
+        #self.state = self.STATE_RETURN
+
+    def getPose(self,name):
+        print "getting ", name
+        while True:
+            try:
+                (trans,rot) = self.listener.lookupTransform('/map',
+                                                                '/'+name, 
+                                                                rospy.Time(0))
+                euler = transform.euler_from_quaternion(rot)
+                rot = transform.quaternion_from_euler(0,0,euler[2]+3.14)
+                point = Point(trans[0],trans[1],0 )
+                quat = Quaternion(rot[0],rot[1],rot[2],rot[3])
+                pose = PoseStamped(header = Header(stamp=rospy.Time.now(),
+                                                   frame_id="/map"), 
+                                   pose = Pose(point,quat))
+                return pose
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException),e:
+                print e
+    def toPose(self,pose):
+        self.goal_pub.publish(pose)
+        #self.state = self.STATE_RETURN
 
     def publish_twist_message(self, vel, ang_vel):
         msg = Twist (Vector3 (vel, 0, 0), Vector3 (0, 0, ang_vel))
@@ -142,7 +198,6 @@ class DominoRide(RideFinder):
         cv2.imshow('test',img)
         cv2.waitKey(3)
         if self.state == self.STATE_LOCATE_TARGETS:
-            print "im rec"
             red_thresh, blue_thresh = self.preprocess_img(img)
             self.red_centers = self.locate_color(red_thresh, img)
             blue_centers = self.locate_color(blue_thresh, img)          
@@ -157,9 +212,9 @@ class DominoRide(RideFinder):
 
         blue_gaussian = cv2.GaussianBlur(img_HSV, (9,9), 2, 2)
 
-        red_Threshed = cv2.inRange(red_gaussian, np.array((0,50,50)), np.array((10,255,255)))
+        red_Threshed = cv2.inRange(red_gaussian, np.array((0,0,0)), np.array((10,255,255)))
 
-        blue_Threshed = cv2.inRange(blue_gaussian, np.array((50,0,0)), np.array((100,255,255)))
+        blue_Threshed = cv2.inRange(blue_gaussian, np.array((60,0,30)), np.array((70,255,255)))
 
         cv2.imshow("threshed", blue_Threshed)
         cv2.waitKey(3)
@@ -183,8 +238,13 @@ class DominoRide(RideFinder):
                 cy = int(M['m01']/M['m00'])
                 area = cv2.contourArea(cnt)
                 areas.append(area)
-                centers.append((cx,cy))
-                cv2.circle(cimg,(cx,cy),2,(0,0,255),3)
+                tooClose = False
+                for center in centers:
+                    if center[0] - cx < 5 and center[1] - cy < 5:
+                        tooClose = True
+                if not tooClose:        
+                    centers.append((cx,cy))
+                    cv2.circle(cimg,(cx,cy),2,(0,0,255),3)
         cv2.imshow('contors',cimg)
         cv2.waitKey(3)
         return centers
@@ -198,6 +258,9 @@ class DominoRide(RideFinder):
 
 if __name__ == '__main__':
     try:
-        node = DominoRide()
+        rospy.init_node('between', anonymous=True)
+        robo_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+        node = DominoRide(robo_pub)
+        node.state = node.STATE_LOCATE_TARGETS
         node.do()
     except rospy.ROSInterruptException: pass

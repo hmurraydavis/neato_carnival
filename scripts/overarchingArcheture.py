@@ -7,17 +7,16 @@ import random
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import LaserScan
-from ar_pose import ARMarkers
 
 #import the games! 
-import bridge
+# import bridge
 import tunnelRide
-import dominos
-import Fiducial
+# import dominos
+import betweenRides
 
-bridge = bridge.bridge()
-tunnel = tunnelRide.tunnelRide()
-dominos = dominos.dominos()
+# bridge = bridge.bridge()
+tunnel = tunnelRide.TunnelRide()
+# dominos = dominos.dominos()
 finder = betweenRides.RideFinder()
 
 def pickMode(mode):
@@ -40,14 +39,17 @@ def pickMode(mode):
         dominos.do()
         return 'inbetweenRides'
     elif mode == 'tunnel':
+        print "**tunnel"
         #go through tunnels!
        	tunnel.do()
         return 'inbetweenRides'
     elif mode == 'inbetweenRides':
+        print "**between"
         #look for next ride to go on
         nextMode = finder.do()
         return nextMode
     else:
+        print "**derp"
         #default case
 #        nextMode = default.do()
         return nextMode
@@ -98,7 +100,7 @@ if __name__ == '__main__':
     # pickMode('bridge')
     mode = 'inbetweenRides'
     try:
-       rospy.init_node('carnival', anonymous=True)
+        rospy.init_node('carnival', anonymous=True)
 #        pub = rospy.Publisher('cmd_vel', Twist, queue_size=10)
 #        sub = rospy.Subscriber('scan', LaserScan, read_in_laser)
 

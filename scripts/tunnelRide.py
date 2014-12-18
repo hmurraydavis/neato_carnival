@@ -88,6 +88,9 @@ class TunnelRide():
             #view-env is a 360-degree view of 0's and 1's.  we wanna go down the middle, straight ahead, towards 0's
             window = 0
             window_middle = 0
+            if len(view_env) == 0:
+                self.state = self.STATE_DONE
+                return
             if view_env[0] == 0:
                 hit_one_at_left = 0
                 hit_one_at_right = 181
@@ -122,7 +125,7 @@ class TunnelRide():
                 end = start + longest_opening
                 # print "lo",longest_opening,start,end
                 window_middle = (end - start)/2.0
-            if window > 200:
+            if window > 180:
                 self.state = self.STATE_DONE            
             angle_thru_tunnel = window_middle
             # print "att",angle_thru_tunnel
