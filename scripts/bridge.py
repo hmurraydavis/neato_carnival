@@ -150,12 +150,36 @@ class bridge():
         dimensions_image = im.shape
         height = dimensions_image[0]
         width = dimensions_image[1]
+        threshold_for_gap = 760
+        largest_gap = {'startPT':0, 'endPT':0, 'lengthGap':0} #initialize a zero dictionary representing the largest gap
+        length_current_gap = 0
+        inGap = False
         
         for collumn_number in range(width):
+            inGapPast = inGap
             collumn = im[:,collumn_number]
-            print collumn, 'length column: ', len(collumn), '\n'
-            np.ndarray.sum(collumn)
-    
+            #print collumn, 'length column: ', len(collumn), '\n'
+            collumn_hue_sum = np.ndarray.sum(collumn)
+            average_pixel_column = collumn_hue_sum/height
+            if average_pixel_column < threshold_for_gap: #case where the side of the bridge is in collumn:
+                inGap = False
+            elif average_pixel_column >= threshold_for_gap: #in a gap collumn: 
+                length_current_gap = length_current_gap + 1
+                inGap = True
+            if ((inGap == True) and (inGapPast == False)) or (collumn_number == 0): #transioning into gap
+                curentStartPt = collumn_number
+            if ((inGap == False) and (inGapPast == True)) or (collumn_number == width): #exiting gap
+                currentEndPt = collumn_number
+                if length_current_gap > largest_gap['lengthGap']:
+                    largest_gap['lengthGap'] = length_current_gap
+                    largest_gap['startPT'] = curentStartPt
+                    largest_gap['endPT'] = currentEndPt
+        #cv2.rectangle(img, pt1, pt2, color[, thickness[, lineType[, shift]]])
+        cv2.rectangle(im, (largest_gap['startPT'],0), (largest_gap['endPT'],30), [0,200,0])
+        cv2.imshow('largest gap', im)
+        self.closeImages()
+        
+        
     def printBridge(self):
         print 'Bridges are pretty!'
     
