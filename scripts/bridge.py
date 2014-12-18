@@ -147,7 +147,14 @@ class bridge():
         return crop_img
         
     def getLargestGap(self, im):
-        np.ndarray.sum([3])
+        dimensions_image = im.shape
+        height = dimensions_image[0]
+        width = dimensions_image[1]
+        
+        for collumn_number in range(width):
+            collumn = im[:,collumn_number]
+            print collumn, 'length column: ', len(collumn), '\n'
+            np.ndarray.sum(collumn)
     
     def printBridge(self):
         print 'Bridges are pretty!'
@@ -159,7 +166,7 @@ class bridge():
         image = b.colorImgPreProcess(image)
         image = b.getContoursOfBridge(image)
         b.findEdgesOfBridge(image)
-        b.cropBridge(image)
+        image = b.cropBridge(image)
         b.getLargestGap(image)
         b.closeImages()
         
