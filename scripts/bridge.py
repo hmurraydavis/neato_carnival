@@ -10,10 +10,8 @@ from cv_bridge import CvBridge, CvBridgeError
 
 
 class Bridge():
-    '''Behaviors to let the robot traverse the bridge and execute the behavior.'''
-    xspeed = 1
-    cmd_vel = Twist(Vector3(0.0,0.0,0.0),Vector3(0.0,0.0,0.0))
-    
+    '''Behaviors to let the robot traverse the bridge.'''
+
     
     
     def closeImages(self):
@@ -25,7 +23,7 @@ class Bridge():
         **Closes all open cv2 images either on a keystroke (comman line use) or 
             immediately (called from another python script)
         """
-        if False: #__name__ == '__main__':
+        if False: #__name__ == '__main__': #butchered because ORS calling name needs waitkey(3)
             cv2.waitKey(0)
             cv2.destroyAllWindows()
         else:
@@ -33,18 +31,24 @@ class Bridge():
     
     
     def __init__(self, publisher): #below closeImages so I can use close images in it!
-        image = cv2.imread('gimpBridge.jpg', cv2.IMREAD_COLOR)
+        '''Initialize bridge object, subscribe to camera and publishers
+        
+        INPUT: ROS Publisher to which bridge topics should be published
+        OUTPUT: none
+        EFFECT: Subscribe to ROS publisher
+        Subscribe to ROS camera to get images
+        Set default travel speed as stoped and forward motion, when used, to 1'''
         image = self.colorImgPreProcess(image)
         self.pub = publisher
         self.cam = rospy.Subscriber('camera/image_raw',Image, self.image_recieved)
         self.bridge = CvBridge()
-        self.testing = False #flag for wheter ot not to use the Stupid By Design slidey bars
-        
+        self.xspeed = 1
+        self.cmd_vel = Twist(Vector3(0.0,0.0,0.0),Vector3(0.0,0.0,0.0))
         return
         
     def image_received(self, image_message):
         """
-        Process image from camera and set the desired cmd_vel
+        Process image from camera and set the desired cmd_vel, callback function
         """
         # Convert the image message to something usable by opencv
         # http://wiki.ros.org/cv_bridge/Tutorials/ConvertingBetweenROSImagesAndOpenCVImagesPython
@@ -60,67 +64,50 @@ class Bridge():
         """
         Prepare images to be analyzed in binary form by appling generic filtering.
         This makes them easier to work with and the resulting image less noisy.
-        INPUT: image for pre-processing. Should be in color, though b&w ahould work.
+        
+        INPUT: image for pre-processing. Should be in color, though b&w should work.
         OUTPUT: returns a RGB image which has been filtered and looks nicer.
         """
         #do processing on the image while it's still in color
         image = cv2.medianBlur(image, 7)  #kernal size must be odd
-        #image = cv2.bilateralFilter(image, 9, 75, 75) #TODO: uncomment and make it not error
-        #self.closeImages()
+        #image = cv2.bilateralFilter(image, 9, 75, 75) #TODO: uncomment when it won't cause C++ errors with ROS
+        #self.closeImages() #uncomment if showing output image
         return image
-
-    def nothing(self, x):
-        pass
         
         
     def getContoursOfBridge(self, im):
+        '''Thresholds the image with hue to detect the red lines on the bridge, 
+        them place a mask of this on a white background
+        
+        INPUT: image color image
+        OUTPUT: BGR colorspace image derived by putting the mask of bridge 
+                    from color thresholding on a white background
+        '''
+        #Make a white image so the mask can be on a white background
         white_image = np.zeros((len(im), len(im[0]), 3), np.uint8)
         white_image[:] = (0,0,0)
         
         cv2.imshow('image', im)
         im = self.colorImgPreProcess(im)
         
-        rLower = 50
-        gLower = 100
-        bLower = 100
+        #upper and lower BGR color bounds declared:
+        rLower = 40
+        gLower = 40
+        bLower = 40
 
         BUpper = 255
-        GUpper = 255
-        RUpper = 255
-        
-        if self.testing == True:
-            cv2.createTrackbar('Red lower','image',0,255,self.nothing)
-            cv2.createTrackbar('Green lower','image',0,255,self.nothing)
-            cv2.createTrackbar('Blue lower','image',0,255,self.nothing)
-            
-            cv2.createTrackbar('Red upper','image',0,255,self.nothing)
-            cv2.createTrackbar('Green upper','image',0,255,self.nothing)
-            cv2.createTrackbar('Blue upper','image',0,255,self.nothing)
-#            
-            if rLower != cv2.getTrackbarPos('Red lower','image'):
-                rLower = cv2.getTrackbarPos('Red lower','image')
-            if gLower != cv2.getTrackbarPos('Green lower','image'):
-                gLower = cv2.getTrackbarPos('Green lower','image')
-            if bLower != cv2.getTrackbarPos('Blue lower','image'):
-                bLower = cv2.getTrackbarPos('Blue lower','image')
-            
-            RUpper = cv2.getTrackbarPos('Red upper','image')
-            GUpper = cv2.getTrackbarPos('Green upper','image')
-            BUpper = cv2.getTrackbarPos('Blue upper','image')
-
+        GUpper = 230
+        RUpper = 230
         
         lower_redColor = np.array([bLower, gLower, rLower])
         upper_redColor = np.array([BUpper, GUpper, RUpper])
-        # Threshold the RGB image to get only red colors
+        
+        #Make masks for taking the bridge and putting it on a background
         RGBMask = cv2.inRange(im, lower_redColor, upper_redColor)
         mask_inv = cv2.bitwise_not(RGBMask)
-        
+        # Threshold the RGB image to get only red colors
         res = cv2.bitwise_and(im,im,mask = RGBMask) #Get the bridge parts of the image
         res = cv2.bitwise_not(white_image, res, mask = mask_inv) #put them on a white background
-        
-#        imgray = cv2.cvtColor(im,cv2.COLOR_BGR2GRAY)
-#        ret,thresh = cv2.threshold(RGBMask,127,255,0)
-#        contours, hierarchy = cv2.findContours(thresh,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 
 #####        for row in res:
 #####            for collumn in res:
