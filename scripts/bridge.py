@@ -175,7 +175,15 @@ class bridge():
                     largest_gap['startPT'] = curentStartPt
                     largest_gap['endPT'] = currentEndPt
         #cv2.rectangle(img, pt1, pt2, color[, thickness[, lineType[, shift]]])
-        cv2.rectangle(im, (largest_gap['startPT'],0), (largest_gap['endPT'],30), [0,200,0])
+        cv2.rectangle(im, (largest_gap['startPT'],0), (largest_gap['endPT'],30), [0,200,0], 3)
+        
+        #draw the line the robt thins is the center or where it is on the bridge:
+        robotCenterInFrame = int(width/2)
+        cv2.line(im, (robotCenterInFrame,0),(robotCenterInFrame,40), [0,0,200], 3)
+        
+        #draw the line that's the center of the largest gap
+        centerOfGap = largest_gap['startPT'] + (largest_gap['lengthGap']/2)
+        
         cv2.imshow('largest gap', im)
         self.closeImages()
         
