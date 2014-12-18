@@ -68,7 +68,6 @@ class bridge():
         RGBMask = cv2.inRange(image, lower_redColor, upper_redColor)
 
         #dialate image to filter it:
-
         kernel = np.ones((6, 6), np.uint8)  #make 5 by 5 kernal size filter
         rgbDilated = cv2.dilate(RGBMask, kernel, iterations=1)
 
@@ -90,7 +89,7 @@ class bridge():
         lower_redColor = np.array([220, 155, 50])
         upper_redColor = np.array([255, 255, 255])
         # Threshold the RGB image to get only red colors
-        RGBMask = cv2.inRange(image, lower_redColor, upper_redColor)
+        RGBMask = cv2.inRange(im, lower_redColor, upper_redColor)
         mask_inv = cv2.bitwise_not(RGBMask)
         res = cv2.bitwise_and(im,im,mask = RGBMask)
         res = cv2.bitwise_not(white_image, res, mask = mask_inv)
@@ -105,7 +104,7 @@ class bridge():
 #####                if pixel.tolist() == [0,0,0]:
 #####                    pixel = np.array([0,0,0])
 ######                    res[row,collumn] = [255,255,255]
-        cv2.imshow('rturened (res) image', res)
+        #cv2.imshow('rturened (res) image', res)
         self.closeImages()
         return res
           
@@ -116,13 +115,17 @@ class bridge():
         for i in range(2):
             im = b.colorImgPreProcess(im)
             #im = cv2.blur(im,(5,5))
-        edges = cv2.Canny(im,0,255,apertureSize = 5)
+            
+        #cv2.Canny(image, threshold1, threshold2[, edges[, apertureSize[, L2gradient]]]) --> edges
+        edges = cv2.Canny(im,0,1155,apertureSize = 5)  #threshold 1 down --> more edges, threshold 2 down --> longer edges
         #cv2.imshow("edges detected on input image", edges)
         
         #cv2.HoughLinesP(image, rho, theta, threshold[, lines[, minLineLength[, maxLineGap]]]) -->lines
         lines = cv2.HoughLinesP(edges, 1, .1, 10)
+        print 'number of lines: ', len(lines[0])
         if len(lines)>0: #only print if lines are found so it doesn't error
-            print 'type: ', type(lines), 'Length: ', len(lines), 'lies are: \n', lines
+            #print 'type: ', type(lines), 'Length: ', len(lines), 'lies are: \n', lines
+            pass
         else: print 'no lines found'
         
         for line in lines[0]:
@@ -130,19 +133,42 @@ class bridge():
             x1,y1,x2,y2 = line
             #cv2.line(img, pt1, pt2, color[, thickness[, lineType[, shift]]]) --> none
             cv2.line(im, (x1,y1), (x2,y2), [150,0,100],3)
-        cv2.imshow('image with lines', im)
+        #cv2.imshow('image with lines', im)
         self.closeImages()
         return
+    
+    def cropBridge(self, im):
+        height = len(im[0])
+        width = len(im[1])
+        print width ,'x', height
+        crop_img = im[int(height*1.3/3):height, 0:width]
+        cv2.imshow('cropped image', crop_img)
+        height = len(crop_img[0][0])
+        width = len(crop_img[1])
+        print width ,'x', height
+#        crop_img = im[int(height*1.5/3):height, 0:width]
+#        cv2.imshow('cropped image 2', crop_img)
+        self.closeImages()
         
+    def getLargestGap(self, im):
+        np.ndarray.sum([3])
+    
     def printBridge(self):
         print 'Bridges are pretty!'
-        
+    
     def do(self):
-        return
+        b = bridge()
+        image = cv2.imread('bridgePics/b0.jpg', cv2.IMREAD_COLOR)
+        cv2.imshow('orig im: ', image)
+        image = b.colorImgPreProcess(image)
+        image = b.getContoursOfBridge(image)
+        b.findEdgesOfBridge(image)
+        b.cropBridge(image)
+        b.getLargestGap(image)
+        b.closeImages()
         
 if __name__ == '__main__':
     b = bridge()
-    image = cv2.imread('bridgePics/b0.jpg', cv2.IMREAD_COLOR)
-    image = b.colorImgPreProcess(image)
-    image = b.getContoursOfBridge(image)
-    b.findEdgesOfBridge(image)
+    b.do()
+
+    
