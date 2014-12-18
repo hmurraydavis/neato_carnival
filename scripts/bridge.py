@@ -164,7 +164,7 @@ class Bridge():
         return crop_img
         
     def getLargestGap(self, im):
-        '''Finds the largest "gap" in the image as defined by a refion of the image where the sum of the columns is below a threshold.
+        '''Finds the largest "gap" in the image as defined by a region of the image where the sum of the columns is below a threshold.
         
         INPUT: Image
         OUTPUT Dictionary with keys: 
@@ -173,8 +173,7 @@ class Bridge():
             lengthGap == The length of the largest gap'''
         #initialize ALL the variables!
         dimensions_image = im.shape
-        height = dimensions_image[0]
-        width = dimensions_image[1]
+        height, width, _ = dimensions_image
         threshold_for_gap = 760
         largest_gap = {'startPT':0, 'endPT':0, 'lengthGap':0} #initialize a zero dictionary representing the largest gap
         length_current_gap = 0
@@ -210,7 +209,7 @@ class Bridge():
         cv2.line(im, (robotCenterInFrame,0),(robotCenterInFrame,40), [0,0,200], 3)
         
         #draw the line that's the center of the largest gap
-        centerOfGap = largest_gap['startPT'] + (largest_gap['lengthGap']/2)
+        centerOfGap = largest_gap['startPT'] + ((largest_gap['endPT']-largest_gap['startPT'])/2)
         cv2.line(im, (centerOfGap,0), (centerOfGap, 40), [200,0,0], 3)
         
         cv2.imshow('largest gap', im)
