@@ -1,12 +1,18 @@
-#may want to use a SIFT descriptor
+#!/usr/bin/env python
 
 import numpy as np
 import cv2
+import math
+import rospy
+from geometry_msgs.msg import Twist, Vector3
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge, CvBridgeError
 
 
-class bridge():
+class Bridge():
     '''Behaviors to let the robot traverse the bridge and execute the behavior.'''
-    filepath = 'bridgePics'
+    xspeed = 1
+    cmd_vel = Twist(Vector3(0.0,0.0,0.0),Vector3(0.0,0.0,0.0))
     
     
     def closeImages(self):
@@ -18,19 +24,34 @@ class bridge():
         **Closes all open cv2 images either on a keystroke (comman line use) or 
             immediately (called from another python script)
         """
-        if __name__ == '__main__':
+        if False: #__name__ == '__main__':
             cv2.waitKey(0)
             cv2.destroyAllWindows()
         else:
             cv2.waitKey(3)
     
     
-    def __init__(self): #below closeImages so I can use close images in it!
+    def __init__(self, publisher): #below closeImages so I can use close images in it!
         image = cv2.imread('gimpBridge.jpg', cv2.IMREAD_COLOR)
         image = self.colorImgPreProcess(image)
-        #cv2.imshow('gimp bridge', image)
-        #self.closeImages()
+        self.pub = publisher
+        self.cam = rospy.Subscriber('camera/image_raw',Image, self.image_recieved)
+        self.bridge = CvBridge()
+        
         return
+        
+    def image_received(self, image_message):
+        """
+        Process image from camera and set the desired cmd_vel
+        """
+        # Convert the image message to something usable by opencv
+        # http://wiki.ros.org/cv_bridge/Tutorials/ConvertingBetweenROSImagesAndOpenCVImagesPython
+        # Note that mono8 and bgr8 are the two image encodings expected by most OpenCV functions.
+        cv_image = self.bridge.imgmsg_to_cv2(image_message, desired_encoding="bgr8")
+        image_data = extract_data(cv_image)
+        linear_velocity, angular_velocity = self.clf.predict(image_data)
+        self.cmd_vel = Twist(linear=Vector3(x=linear_velocity), angular=Vector3(z=angular_velocity))
+        rospy.loginfo(self.cmd_vel)
             
             
     def colorImgPreProcess(self, image):
@@ -42,40 +63,12 @@ class bridge():
         """
         #do processing on the image while it's still in color
         image = cv2.medianBlur(image, 7)  #kernal size must be odd
-        image = cv2.bilateralFilter(image, 9, 75, 75)
+        #image = cv2.bilateralFilter(image, 9, 75, 75) #TODO: uncomment and make it not error
         #self.closeImages()
         return image
     
     
-    def imageProcessRedCups(self, image):
-        """
-        Process an input image with Open CV methods to focus on red cup like shapes
 
-        INPUT: image
-        OUTPUT: matrix of singular values of the binary image for prcessing
-            with the ridge regression
-        """
-        #    global colorImgInput #from mouse clicking stuff
-        #pre-process image while it's in color
-        for i in range(2): #run color filtering 2x for better results
-            image = colorImgPreProcess(image)  
-
-        # define range of red color for HSV
-        lower_redColor = np.array([30, 30, 160])
-        upper_redColor = np.array([70, 80, 230])
-
-        # Threshold the RGB image to get only red colors
-        RGBMask = cv2.inRange(image, lower_redColor, upper_redColor)
-
-        #dialate image to filter it:
-        kernel = np.ones((6, 6), np.uint8)  #make 5 by 5 kernal size filter
-        rgbDilated = cv2.dilate(RGBMask, kernel, iterations=1)
-
-        #    cv2.setMouseCallback("color mask",mouse_event,[])
-        #cv2.imshow("color mask", RGBMask)
-        #cv2.imshow('dilated image', rgbDilated)
-
-        return returnImg(rgbDilated)
 
     
     def getContoursOfBridge(self, im):
@@ -122,9 +115,10 @@ class bridge():
         
         #cv2.HoughLinesP(image, rho, theta, threshold[, lines[, minLineLength[, maxLineGap]]]) -->lines
         lines = cv2.HoughLinesP(edges, 1, .1, 10)
-        print 'number of lines: ', len(lines[0])
+        
         if len(lines)>0: #only print if lines are found so it doesn't error
             #print 'type: ', type(lines), 'Length: ', len(lines), 'lies are: \n', lines
+            print 'number of lines: ', len(lines[0])
             pass
         else: print 'no lines found'
         
@@ -179,6 +173,7 @@ class bridge():
         
         #draw the line the robt thins is the center or where it is on the bridge:
         robotCenterInFrame = int(width/2)
+        #red line
         cv2.line(im, (robotCenterInFrame,0),(robotCenterInFrame,40), [0,0,200], 3)
         
         #draw the line that's the center of the largest gap
@@ -189,23 +184,67 @@ class bridge():
         self.closeImages()
         return {'center_of_gap': centerOfGap, 'robot_center':robotCenterInFrame}
         
+    def steerRobotOnBridge(self, centerOfGap, robotCenter):
+        K = .06 #PID constant
+        portion = math.abs(centerOfGap - robotCenter)
+        turnAmount = K * portion
+        
+        speed=Vector3(float(xspeed),0.0,0.0) 
+        
+        if centerOfGap < robotCenter: #Gap is to the left of the robot's center
+            #turn left
+            angular=Vector3(0.0,0.0,math.fabs(float(turnAmount)))
+        elif centerOfGap > robotCenter:
+            angular=Vector3(0.0,0.0,math.fabs(float(-1*turnAmount)))
+        else:
+            angular=Vector3(0.0,0.0,0.0)
+        pub.publish(speed, angular)
+    #print 'lft turn ', lft_trn_amt
+    #Construct publish data:
+        return Twist(speed,angular)
+    
         
     def printBridge(self):
         print 'Bridges are pretty!'
+        
+#    def run(self):
+#        '''Get camera images and publish the current, set point velocity
+#        '''
+#        self.running = True
+#        self.sub = rospy.Subscriber('camera/image_raw', Image, self.image_received)
+#        rate = rospy.Rate(20)
+#        while not rospy.is_shutdown() and self.running:
+#            self.pub.publish(self.cmd_vel)
+#            rate.sleep()
     
-    def do(self):
-        b = bridge()
-        image = cv2.imread('bridgePics/b0.jpg', cv2.IMREAD_COLOR)
-        cv2.imshow('orig im: ', image)
+    def image_recieved(self,msg):
+        print "image"
+        img = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
+        cv2.imshow('test',img)
+        self.do_stuff(img)
+        cv2.waitKey(3)
+        
+        
+    def do_stuff(self, image):
         image = b.colorImgPreProcess(image)
         image = b.getContoursOfBridge(image)
-        b.findEdgesOfBridge(image)
+#        b.findEdgesOfBridge(image)
         image = b.cropBridge(image)
-        b.getLargestGap(image)
+        gap_and_robot_locations = b.getLargestGap(image)
+        
+        b.steerRobotOnBridge(gap_and_robot_locations['centerOfGap'], gap_and_robot_locations[robot_center])
         b.closeImages()
         
+    def do(self):
+        r = rospy.Rate(10)
+        while not rospy.is_shutdown():
+            r.sleep ()
+        
 if __name__ == '__main__':
-    b = bridge()
+    
+    rospy.init_node('between', anonymous=True)
+    robo_pub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    b = Bridge(robo_pub)
     b.do()
 
     
