@@ -109,27 +109,26 @@ class Bridge():
         res = cv2.bitwise_and(im,im,mask = RGBMask) #Get the bridge parts of the image
         res = cv2.bitwise_not(white_image, res, mask = mask_inv) #put them on a white background
 
-#####        for row in res:
-#####            for collumn in res:
-#####                pixel = res[row, collumn][0][0]
-#####                if pixel.tolist() == [0,0,0]:
-#####                    pixel = np.array([0,0,0])
-######                    res[row,collumn] = [255,255,255]
         cv2.imshow('rturened (res) image', res)
-        self.closeImages()
+        self.closeImages() #comment if no longer showing images
         return res
           
     def findEdgesOfBridge(self, im):
         '''Finds the edges of the bridge so the robot can avoid driving off the 
-        bridge.'''
+        bridge.
+        
+        INPUT: RGB image ready for edge detection
+        OUTPUT: List of NumPy matrixes that represent the start and end points 
+                    of the lines found of form: [[x1,y1,x2,y2], [x3,y3,x4,y4]]
+        '''
         ## Im should be ready to have edge detection run on it. 
         for i in range(2):
             im = b.colorImgPreProcess(im)
-            #im = cv2.blur(im,(5,5))
             
         #cv2.Canny(image, threshold1, threshold2[, edges[, apertureSize[, L2gradient]]]) --> edges
-        edges = cv2.Canny(im,0,1155,apertureSize = 5)  #threshold 1 down --> more edges, threshold 2 down --> longer edges
-        #cv2.imshow("edges detected on input image", edges)
+        #threshold 1 down --> more edges, threshold 2 down --> longer edges
+        edges = cv2.Canny(im,0,1155,apertureSize = 5)  
+        #cv2.imshow("edges detected on input image", edges) #uncomment to see detected images
         
         #cv2.HoughLinesP(image, rho, theta, threshold[, lines[, minLineLength[, maxLineGap]]]) -->lines
         lines = cv2.HoughLinesP(edges, 1, .1, 10)
@@ -137,17 +136,16 @@ class Bridge():
         if len(lines)>0: #only print if lines are found so it doesn't error
             #print 'type: ', type(lines), 'Length: ', len(lines), 'lies are: \n', lines
             print 'number of lines: ', len(lines[0])
-            pass
         else: print 'no lines found'
         
-        for line in lines[0]:
-
+        #draw the lines found
+        for line in lines[0]: 
             x1,y1,x2,y2 = line
             #cv2.line(img, pt1, pt2, color[, thickness[, lineType[, shift]]]) --> none
             cv2.line(im, (x1,y1), (x2,y2), [150,0,100],3)
-        #cv2.imshow('image with lines', im)
+        #cv2.imshow('image with lines', im) #uncomment to see image with lines
         self.closeImages()
-        return
+        return lines[0]
     
     def cropBridge(self, im):
         dimensions_image = im.shape
